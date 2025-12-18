@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>API Logger</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+    }
+    
+    .status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    
+    .status.idle { background: #e9ecef; color: #495057; }
+    .status.recording { background: #f8d7da; color: #721c24; }
+    .status.paused { background: #fff3cd; color: #856404; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    
+    button {
+      width: 100%;
+      padding: 8px 16px;
+      margin: 4px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    button:hover {
+      background: #f8f9fa;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    button.primary {
+      background: #007acc;
+      color: white;
+      border-color: #007acc;
+    }
+    
+    button.primary:hover {
+      background: #0056b3;
+    }
+    
+    .info {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="status" class="status idle">Idle</div>
+  
+  <button id="startBtn" class="primary">Start Recording</button>
+  <button id="pauseBtn" disabled>Pause Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+  <button id="exportBtn" disabled>Export Data</button>
+  
+  <div class="info">
+    Use DevTools → API Logger panel for detailed request inspection
+  </div>
+
+  <script src="../src/popup.js"></script>
+</body>
+</html>

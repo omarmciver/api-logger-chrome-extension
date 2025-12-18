@@ -1,0 +1,13 @@
+{
+  "name": "api-logger-chrome-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for recording and logging API calls",
+  "scripts": {
+    "build": "echo 'Extension ready for loading'",
+    "dev": "echo 'Load unpacked extension in Chrome DevTools'",
+    "test": "echo 'Manual testing required - load extension and test DevTools panel'"
+  },
+  "keywords": ["chrome-extension", "api-logger", "devtools"],
+  "author": "API Logger Team",
+  "license": "MIT"
+}

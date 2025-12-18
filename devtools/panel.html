@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>API Logger Panel</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 12px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #252526;
+      border-bottom: 1px solid #3c3c3c;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    button {
+      padding: 5px 12px;
+      border: 1px solid #3c3c3c;
+      border-radius: 3px;
+      background: #3c3c3c;
+      color: #d4d4d4;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.15s;
+    }
+    
+    button:hover:not(:disabled) { background: #4e4e4e; }
+    button.primary { background: #0e639c; border-color: #0e639c; }
+    button.primary:hover:not(:disabled) { background: #1177bb; }
+    button.danger { background: #5a1d1d; border-color: #5a1d1d; }
+    button.danger:hover:not(:disabled) { background: #7a2d2d; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    .status-badge {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: auto;
+    }
+    .status-badge.idle { background: #3c3c3c; }
+    .status-badge.recording { background: #c42b1c; animation: pulse 1.5s infinite; }
+    .status-badge.paused { background: #9d5d00; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    
+    .counter { font-size: 11px; color: #808080; margin-left: 8px; }
+    
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .sessions-panel {
+      width: 220px;
+      background: #252526;
+      border-right: 1px solid #3c3c3c;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    
+    .sessions-header {
+      padding: 8px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid #3c3c3c;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .sessions-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .session-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #2d2d2d;
+      cursor: pointer;
+    }
+    .session-item:hover { background: #2a2d2e; }
+    .session-item.active { background: #094771; }
+    
+    .session-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .session-meta {
+      font-size: 10px;
+      color: #808080;
+    }
+    
+    .session-status {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+    .session-status.active { background: #c42b1c; }
+    .session-status.paused { background: #9d5d00; }
+    .session-status.stopped { background: #3c3c3c; }
+    
+    .session-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    
+    .session-actions button {
+      padding: 3px 8px;
+      font-size: 10px;
+    }
+    
+    .requests-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .requests-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid #3c3c3c;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .filter-input {
+      flex: 1;
+      padding: 5px 8px;
+      background: #3c3c3c;
+      border: 1px solid #3c3c3c;
+      border-radius: 3px;
+      color: #d4d4d4;
+      font-size: 11px;
+    }
+    .filter-input:focus { outline: none; border-color: #0e639c; }
+    
+    .requests-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .request-row {
+      display: flex;
+      padding: 6px 12px;
+      border-bottom: 1px solid #2d2d2d;
+      cursor: pointer;
+      align-items: center;
+    }
+    .request-row:hover { background: #2a2d2e; }
+    .request-row.expanded { background: #094771; }
+    
+    .method {
+      width: 60px;
+      font-weight: 600;
+      font-size: 10px;
+    }
+    .method.GET { color: #4ec9b0; }
+    .method.POST { color: #569cd6; }
+    .method.PUT { color: #dcdcaa; }
+    .method.DELETE { color: #f14c4c; }
+    .method.PATCH { color: #ce9178; }
+    
+    .status-code {
+      width: 40px;
+      text-align: center;
+      font-size: 10px;
+    }
+    .status-code.success { color: #4ec9b0; }
+    .status-code.redirect { color: #dcdcaa; }
+    .status-code.error { color: #f14c4c; }
+    
+    .url {
+      flex: 1;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin: 0 12px;
+    }
+    
+    .duration {
+      width: 60px;
+      text-align: right;
+      color: #808080;
+      font-size: 10px;
+    }
+    
+    .time {
+      width: 70px;
+      text-align: right;
+      color: #808080;
+      font-size: 10px;
+    }
+    
+    .request-details {
+      background: #1e1e1e;
+      border-bottom: 1px solid #3c3c3c;
+      padding: 12px;
+      display: none;
+    }
+    .request-details.expanded { display: block; }
+    
+    .detail-section {
+      margin-bottom: 12px;
+    }
+    
+    .detail-section h4 {
+      margin: 0 0 6px 0;
+      color: #569cd6;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    
+    .detail-content {
+      background: #252526;
+      padding: 8px;
+      border-radius: 3px;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: #808080;
+      padding: 60px 20px;
+    }
+    .empty-state h3 { margin: 0 0 8px 0; color: #d4d4d4; }
+    
+    .no-sessions {
+      text-align: center;
+      color: #808080;
+      padding: 20px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="newSessionBtn" class="primary">New Session</button>
+    <button id="startBtn" disabled>Record</button>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="stopBtn" disabled>Stop</button>
+    <button id="exportBtn" disabled>Export</button>
+    <span class="status-badge idle" id="statusBadge">Idle</span>
+    <span class="counter" id="requestCounter">0 calls</span>
+  </div>
+  
+  <div class="main-content">
+    <div class="sessions-panel">
+      <div class="sessions-header">
+        <span>Sessions</span>
+        <button id="clearAllBtn" class="danger" style="padding: 2px 6px; font-size: 9px;">Clear All</button>
+      </div>
+      <div class="sessions-list" id="sessionsList">
+        <div class="no-sessions">No sessions yet</div>
+      </div>
+    </div>
+    
+    <div class="requests-panel">
+      <div class="requests-header">
+        <input type="text" class="filter-input" id="filterInput" placeholder="Filter by URL or method...">
+        <button id="clearRequestsBtn">Clear List</button>
+      </div>
+      <div class="requests-list" id="requestsList">
+        <div class="empty-state">
+          <h3>No API calls recorded</h3>
+          <p>Create a new session and start recording to capture API calls.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>
