@@ -23,10 +23,10 @@ export function startRecording(sessionId, onCall) {
   isRecording = true;
   
   // Update session with current tab URL
-  if (chrome.devtools?.inspectedWindow?.tabId) {
-    chrome.tabs.get(chrome.devtools.inspectedWindow.tabId, (tab) => {
-      if (tab?.url) {
-        updateSession(sessionId, { tabUrl: tab.url });
+  if (chrome.devtools?.inspectedWindow) {
+    chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+      if (!isException && result) {
+        updateSession(sessionId, { tabUrl: result });
       }
     });
   }

@@ -10,14 +10,65 @@ class APILoggerPanel {
     this.isPaused = false;
     this.filterText = '';
     this.networkListener = null;
+    this.hasConsent = false;
+    this.pendingAction = null;
     
     this.init();
   }
   
   async init() {
     await initDB();
+    await this.loadConsentState();
     this.bindUI();
+    this.bindConsentUI();
     await this.loadSessions();
+  }
+  
+  async loadConsentState() {
+    const result = await chrome.storage.local.get('apiLoggerConsent');
+    this.hasConsent = result.apiLoggerConsent === true;
+  }
+  
+  async saveConsentState(consent) {
+    this.hasConsent = consent;
+    await chrome.storage.local.set({ apiLoggerConsent: consent });
+  }
+  
+  bindConsentUI() {
+    this.consentOverlay = document.getElementById('consentOverlay');
+    this.consentAcceptBtn = document.getElementById('consentAcceptBtn');
+    this.consentDeclineBtn = document.getElementById('consentDeclineBtn');
+    
+    this.consentAcceptBtn.onclick = async () => {
+      await this.saveConsentState(true);
+      this.hideConsentDialog();
+      if (this.pendingAction) {
+        this.pendingAction();
+        this.pendingAction = null;
+      }
+    };
+    
+    this.consentDeclineBtn.onclick = () => {
+      this.hideConsentDialog();
+      this.pendingAction = null;
+    };
+  }
+  
+  showConsentDialog(onAccept) {
+    this.pendingAction = onAccept;
+    this.consentOverlay.classList.remove('hidden');
+  }
+  
+  hideConsentDialog() {
+    this.consentOverlay.classList.add('hidden');
+  }
+  
+  requireConsent(action) {
+    if (this.hasConsent) {
+      action();
+    } else {
+      this.showConsentDialog(action);
+    }
   }
   
   bindUI() {
@@ -35,7 +86,7 @@ class APILoggerPanel {
     this.filterInput = document.getElementById('filterInput');
     
     this.newSessionBtn.onclick = () => this.createNewSession();
-    this.startBtn.onclick = () => this.startRecording();
+    this.startBtn.onclick = () => this.requireConsent(() => this.startRecording());
     this.pauseBtn.onclick = () => this.pauseRecording();
     this.stopBtn.onclick = () => this.stopRecording();
     this.exportBtn.onclick = () => this.exportCurrentSession();
@@ -122,25 +173,29 @@ class APILoggerPanel {
   }
   
   async createNewSession() {
-    if (this.isRecording) {
-      await this.stopRecording();
-    }
-    
-    const name = `Session ${new Date().toLocaleString()}`;
-    const session = await createSession(name);
-    await this.loadSessions();
-    await this.selectSession(session.id);
-    await this.startRecording();
+    this.requireConsent(async () => {
+      if (this.isRecording) {
+        await this.stopRecording();
+      }
+      
+      const name = `Session ${new Date().toLocaleString()}`;
+      const session = await createSession(name);
+      await this.loadSessions();
+      await this.selectSession(session.id);
+      await this.startRecording();
+    });
   }
   
   async resumeSession(sessionId) {
-    if (this.isRecording) {
-      await this.stopRecording();
-    }
-    
-    await this.selectSession(sessionId);
-    await updateSession(sessionId, { status: 'active' });
-    await this.startRecording();
+    this.requireConsent(async () => {
+      if (this.isRecording) {
+        await this.stopRecording();
+      }
+      
+      await this.selectSession(sessionId);
+      await updateSession(sessionId, { status: 'active' });
+      await this.startRecording();
+    });
   }
   
   async startRecording() {
@@ -467,9 +522,9 @@ ${call.requestBody ? '\nBody:\n' + this.formatBody(call.requestBody) : ''}</div>
   
   async getCurrentTabUrl() {
     return new Promise(resolve => {
-      if (chrome.devtools?.inspectedWindow?.tabId) {
-        chrome.tabs.get(chrome.devtools.inspectedWindow.tabId, tab => {
-          resolve(tab?.url || null);
+      if (chrome.devtools?.inspectedWindow) {
+        chrome.devtools.inspectedWindow.eval('window.location.href', (result, isException) => {
+          resolve(isException ? null : result);
         });
       } else {
         resolve(null);

@@ -103,11 +103,9 @@ async function handleMessage(message, sender, sendResponse) {
         break;
         
       case 'getCurrentTabId':
-        // Handle tab ID request from content script
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          sendResponse({ tabId: tabs[0]?.id || 0 });
-        });
-        return; // Don't call sendResponse again
+        // This action is deprecated - DevTools panels should use chrome.devtools.inspectedWindow.tabId
+        sendResponse({ tabId: 0 });
+        break;
         
       default:
         sendResponse({ success: false, error: `Unknown action: ${message.action}` });
@@ -158,24 +156,10 @@ function handleStateRecovered(data) {
   broadcastStateUpdate({ event: 'stateRecovered', ...data });
 }
 
-// Broadcast state updates to all extension components
+// Broadcast state updates to extension components
 async function broadcastStateUpdate(data) {
   try {
-    // Notify popup if open
-    const popupViews = chrome.extension.getViews({ type: 'popup' });
-    popupViews.forEach(view => {
-      view.postMessage({ type: 'stateUpdate', ...data }, '*');
-    });
-    
-    // Notify content scripts in all tabs
-    const tabs = await chrome.tabs.query({});
-    tabs.forEach(tab => {
-      chrome.tabs.sendMessage(tab.id, { type: 'stateUpdate', ...data }).catch(() => {
-        // Ignore errors for tabs that don't have content script
-      });
-    });
-    
-    // Notify DevTools panels
+    // Notify DevTools panels via runtime messaging
     broadcastToDevTools({ type: 'stateUpdate', ...data });
   } catch (error) {
     console.error('Failed to broadcast state update:', error);

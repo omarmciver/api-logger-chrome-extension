@@ -263,9 +263,98 @@
       padding: 20px;
       font-size: 11px;
     }
+    
+    .consent-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .consent-overlay.hidden { display: none; }
+    
+    .consent-dialog {
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-radius: 6px;
+      padding: 24px;
+      max-width: 480px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    .consent-dialog h2 {
+      margin: 0 0 16px 0;
+      color: #d4d4d4;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .consent-dialog h2::before {
+      content: "⚠️";
+    }
+    
+    .consent-dialog p {
+      margin: 0 0 12px 0;
+      color: #a0a0a0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    
+    .consent-dialog ul {
+      margin: 0 0 16px 0;
+      padding-left: 20px;
+      color: #a0a0a0;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    
+    .consent-dialog .privacy-link {
+      color: #569cd6;
+      text-decoration: none;
+      font-size: 11px;
+    }
+    .consent-dialog .privacy-link:hover { text-decoration: underline; }
+    
+    .consent-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .consent-actions button {
+      flex: 1;
+      padding: 10px 16px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
+  <div id="consentOverlay" class="consent-overlay hidden">
+    <div class="consent-dialog">
+      <h2>Data Capture Notice</h2>
+      <p>This extension will capture network traffic from the current tab, including:</p>
+      <ul>
+        <li>Request/response URLs and query parameters</li>
+        <li>HTTP headers (sensitive headers like Authorization are redacted)</li>
+        <li>Request/response bodies (may contain personal data)</li>
+        <li>WebSocket and Server-Sent Events messages</li>
+      </ul>
+      <p>All data is stored <strong>locally on your device</strong> and is never transmitted externally.</p>
+      <p><a href="https://www.mode3.ai/privacy/app/api-logger-chrome-extension" target="_blank" class="privacy-link">Read our Privacy Policy →</a></p>
+      <div class="consent-actions">
+        <button id="consentDeclineBtn">Cancel</button>
+        <button id="consentAcceptBtn" class="primary">I Understand, Continue</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toolbar">
     <button id="newSessionBtn" class="primary">New Session</button>
     <button id="startBtn" disabled>Record</button>
