@@ -216,44 +216,40 @@ function getResponseBody(request) {
   });
 }
 
-/**
- * Determine if a request is likely an API call (vs static resource)
- */
 function isLikelyApiCall(url, resourceType, mimeType) {
-  // Include XHR and Fetch
-  if (resourceType === 'xhr' || resourceType === 'fetch') {
-    return true;
-  }
-  
-  // Check mime type for JSON/XML APIs
-  if (mimeType) {
-    const apiMimeTypes = [
-      'application/json',
-      'application/xml',
-      'text/xml',
-      'application/x-www-form-urlencoded',
-      'text/plain'
-    ];
-    if (apiMimeTypes.some(type => mimeType.includes(type))) {
-      return true;
-    }
-  }
-  
-  // Check URL patterns that suggest API
   const urlLower = url.toLowerCase();
-  const apiPatterns = ['/api/', '/v1/', '/v2/', '/v3/', '/graphql', '/rest/', '.json'];
-  if (apiPatterns.some(pattern => urlLower.includes(pattern))) {
-    return true;
-  }
   
-  // Exclude common static resources
-  const staticExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf', '.ico', '.map'];
-  if (staticExtensions.some(ext => urlLower.endsWith(ext))) {
-    return false;
-  }
+  const excludedResourceTypes = ['image', 'font', 'stylesheet', 'script', 'media', 'texttrack', 'manifest'];
+  if (excludedResourceTypes.includes(resourceType)) return false;
   
-  // Default: include if resourceType is document or unknown
-  return resourceType === 'document' || !resourceType;
+  const excludedMimePatterns = [
+    'image/', 'video/', 'audio/', 'font/',
+    'application/octet-stream', 'application/pdf',
+    'application/zip', 'application/gzip',
+    'text/css', 'text/javascript', 'application/javascript',
+    'application/wasm'
+  ];
+  if (mimeType && excludedMimePatterns.some(p => mimeType.includes(p))) return false;
+  
+  const staticExtensions = [
+    '.js', '.mjs', '.css', '.scss', '.less',
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.bmp', '.avif',
+    '.woff', '.woff2', '.ttf', '.eot', '.otf',
+    '.mp3', '.mp4', '.webm', '.ogg', '.wav', '.avi', '.mov',
+    '.pdf', '.zip', '.gz', '.tar', '.rar',
+    '.map', '.wasm'
+  ];
+  if (staticExtensions.some(ext => urlLower.endsWith(ext))) return false;
+  
+  if (resourceType === 'xhr' || resourceType === 'fetch') return true;
+  
+  const apiMimeTypes = ['application/json', 'application/xml', 'text/xml', 'text/html', 'text/plain'];
+  if (mimeType && apiMimeTypes.some(type => mimeType.includes(type))) return true;
+  
+  const apiPatterns = ['/api/', '/v1/', '/v2/', '/v3/', '/v4/', '/graphql', '/rest/', '/rpc/', '.json', '/query', '/mutation'];
+  if (apiPatterns.some(pattern => urlLower.includes(pattern))) return true;
+  
+  return false;
 }
 
 /**

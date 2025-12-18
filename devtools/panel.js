@@ -338,21 +338,39 @@ class APILoggerPanel {
   }
   
   isApiCall(url, resourceType, mimeType) {
-    if (resourceType === 'xhr' || resourceType === 'fetch') return true;
-    
-    if (mimeType) {
-      const apiTypes = ['application/json', 'application/xml', 'text/xml', 'text/plain'];
-      if (apiTypes.some(t => mimeType.includes(t))) return true;
-    }
-    
     const urlLower = url.toLowerCase();
-    const apiPatterns = ['/api/', '/v1/', '/v2/', '/v3/', '/graphql', '/rest/', '.json'];
-    if (apiPatterns.some(p => urlLower.includes(p))) return true;
     
-    const staticExt = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf', '.ico', '.map'];
+    const excludedResourceTypes = ['image', 'font', 'stylesheet', 'script', 'media', 'texttrack', 'manifest'];
+    if (excludedResourceTypes.includes(resourceType)) return false;
+    
+    const excludedMimePatterns = [
+      'image/', 'video/', 'audio/', 'font/',
+      'application/octet-stream', 'application/pdf',
+      'application/zip', 'application/gzip',
+      'text/css', 'text/javascript', 'application/javascript',
+      'application/wasm'
+    ];
+    if (mimeType && excludedMimePatterns.some(p => mimeType.includes(p))) return false;
+    
+    const staticExt = [
+      '.js', '.mjs', '.css', '.scss', '.less',
+      '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.bmp', '.avif',
+      '.woff', '.woff2', '.ttf', '.eot', '.otf',
+      '.mp3', '.mp4', '.webm', '.ogg', '.wav', '.avi', '.mov',
+      '.pdf', '.zip', '.gz', '.tar', '.rar',
+      '.map', '.wasm'
+    ];
     if (staticExt.some(ext => urlLower.endsWith(ext))) return false;
     
-    return resourceType === 'document' || !resourceType;
+    if (resourceType === 'xhr' || resourceType === 'fetch') return true;
+    
+    const apiMimeTypes = ['application/json', 'application/xml', 'text/xml', 'text/html', 'text/plain'];
+    if (mimeType && apiMimeTypes.some(t => mimeType.includes(t))) return true;
+    
+    const apiPatterns = ['/api/', '/v1/', '/v2/', '/v3/', '/v4/', '/graphql', '/rest/', '/rpc/', '.json', '/query', '/mutation'];
+    if (apiPatterns.some(p => urlLower.includes(p))) return true;
+    
+    return false;
   }
   
   filterHeaders(headers) {
