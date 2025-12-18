@@ -35,6 +35,7 @@ jobs:
           zip -r api-logger-extension-v${{ steps.version.outputs.VERSION }}.zip \
             manifest.json \
             devtools/ \
+            public/popup.html \
             src/db.js \
             src/export.js \
             icons/*.png

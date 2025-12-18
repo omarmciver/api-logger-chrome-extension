@@ -5,75 +5,60 @@
   <title>API Logger</title>
   <style>
     body {
-      width: 300px;
+      width: 280px;
       padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      margin: 0;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    
+    h3 {
+      margin: 0 0 12px 0;
       font-size: 14px;
+      color: #fff;
     }
     
-    .status {
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 12px;
+    p {
+      margin: 0 0 12px 0;
+      line-height: 1.5;
+      color: #a0a0a0;
     }
     
-    .status.idle { background: #e9ecef; color: #495057; }
-    .status.recording { background: #f8d7da; color: #721c24; }
-    .status.paused { background: #fff3cd; color: #856404; }
-    .status.error { background: #f8d7da; color: #721c24; }
-    
-    button {
-      width: 100%;
-      padding: 8px 16px;
-      margin: 4px 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: white;
-      cursor: pointer;
-      font-size: 14px;
+    .shortcut {
+      display: inline-block;
+      background: #3c3c3c;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 11px;
     }
     
-    button:hover {
-      background: #f8f9fa;
+    .steps {
+      margin: 12px 0;
+      padding-left: 20px;
     }
     
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    button.primary {
-      background: #007acc;
-      color: white;
-      border-color: #007acc;
-    }
-    
-    button.primary:hover {
-      background: #0056b3;
-    }
-    
-    .info {
-      font-size: 12px;
-      color: #666;
-      text-align: center;
-      margin-top: 12px;
+    .steps li {
+      margin: 6px 0;
+      color: #a0a0a0;
     }
   </style>
 </head>
 <body>
-  <div id="status" class="status idle">Idle</div>
+  <h3>API Logger</h3>
+  <p>Record and export API calls from any website.</p>
   
-  <button id="startBtn" class="primary">Start Recording</button>
-  <button id="pauseBtn" disabled>Pause Recording</button>
-  <button id="stopBtn" disabled>Stop Recording</button>
-  <button id="exportBtn" disabled>Export Data</button>
+  <p><strong>To use:</strong></p>
+  <ol class="steps">
+    <li>Open DevTools (<span class="shortcut">F12</span>)</li>
+    <li>Find the <strong>API Logger</strong> tab</li>
+    <li>Create a session and start recording</li>
+  </ol>
   
-  <div class="info">
-    Use DevTools → API Logger panel for detailed request inspection
-  </div>
-
-  <script src="../src/popup.js"></script>
+  <p style="font-size: 11px; color: #666;">
+    DevTools must be open during recording.
+  </p>
 </body>
 </html>
