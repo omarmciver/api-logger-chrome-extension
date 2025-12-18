@@ -16,11 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Extract version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
@@ -45,23 +40,10 @@ jobs:
             src/export.js \
             icons/*.png
 
-      - name: Install CRX tooling
-        run: npm install -g crx
-
-      - name: Create signed CRX
-        env:
-          SIGNING_KEY: ${{ secrets.EXTENSION_SIGNING_KEY }}
-        run: |
-          echo "$SIGNING_KEY" > key.pem
-          crx pack . -o api-logger-extension-v${{ steps.version.outputs.VERSION }}.crx -p key.pem
-          rm key.pem
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            api-logger-extension-v${{ steps.version.outputs.VERSION }}.zip
-            api-logger-extension-v${{ steps.version.outputs.VERSION }}.crx
+          files: api-logger-extension-v${{ steps.version.outputs.VERSION }}.zip
           generate_release_notes: true
           draft: false
           prerelease: false
